@@ -1,0 +1,65 @@
+:root {
+  --bg: #0b0e11; --panel: #12161b; --garis: #222a33; --teks: #d7dde4; --redup: #7d8a97;
+  --aksen: #f0a43a; --naik: #2ec27e; --turun: #e5534b; --biru: #4c9aff;
+  --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--teks); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--garis); flex-wrap: wrap; }
+.logo { font: 700 15px var(--mono); letter-spacing: 2px; color: var(--aksen); }
+.logo span { color: var(--redup); }
+#status { margin-left: auto; font: 12px var(--mono); color: var(--redup); }
+#status.error { color: var(--turun); }
+nav { display: flex; gap: 2px; padding: 0 16px; border-bottom: 1px solid var(--garis); overflow-x: auto; }
+nav button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--redup); padding: 10px 12px; cursor: pointer; white-space: nowrap; font: inherit; }
+nav button.on { color: var(--teks); border-color: var(--aksen); }
+main { padding: 16px; max-width: 1400px; margin: 0 auto; }
+section { display: none; }
+section.on { display: block; }
+.panel { background: var(--panel); border: 1px solid var(--garis); border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; min-width: 0; }
+h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--redup); margin: 0 0 10px; }
+.grid2 { display: grid; grid-template-columns: 330px 1fr; gap: 12px; }
+.grid-sama { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 900px) { .grid2, .grid-sama { grid-template-columns: 1fr; } }
+.chart { position: relative; height: 200px; }
+.chart.tinggi { height: 340px; }
+input, select, textarea, button { font: inherit; color: var(--teks); background: var(--bg); border: 1px solid var(--garis); border-radius: 4px; padding: 6px 8px; }
+input:focus, select:focus, textarea:focus { outline: 1px solid var(--aksen); }
+input#simbol { font-family: var(--mono); text-transform: uppercase; width: 130px; }
+button { background: var(--aksen); color: #111; border-color: var(--aksen); font-weight: 600; cursor: pointer; }
+button:disabled { opacity: .5; cursor: wait; }
+button.beli { background: var(--naik); border-color: var(--naik); flex: 1; }
+button.jual { background: var(--turun); border-color: var(--turun); flex: 1; color: #fff; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.kolom { display: flex; flex-direction: column; gap: 8px; }
+label { color: var(--redup); font-size: 13px; display: flex; gap: 6px; align-items: center; }
+form#global { display: flex; gap: 6px; }
+.kartu { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.kartu div { background: var(--panel); border: 1px solid var(--garis); border-radius: 6px; padding: 10px 12px; }
+.kartu small { display: block; color: var(--redup); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+.kartu b { font: 600 18px var(--mono); }
+.kartu i { font: normal 12px var(--mono); color: var(--redup); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: var(--redup); font-weight: 500; font-size: 12px; }
+td, th { padding: 5px 6px; border-bottom: 1px solid var(--garis); }
+td.n, th.n { text-align: right; font-family: var(--mono); }
+#wl tr { cursor: pointer; }
+#wl tr:hover td { background: #1a2027; }
+#wl td.x { color: var(--redup); width: 16px; }
+.naik { color: var(--naik); } .turun { color: var(--turun); }
+.redup { color: var(--redup); font-size: 12px; margin: 6px 0 0; }
+.preset { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.preset button { background: var(--bg); color: var(--teks); border-color: var(--garis); font-weight: 400; font-size: 12px; }
+.heat td { text-align: center; font-family: var(--mono); color: #fff; }
+.jawaban { white-space: pre-wrap; }
+.jawaban h3 { margin: 0 0 6px; color: var(--aksen); font-size: 14px; }
+details { margin-top: 8px; color: var(--redup); }
+details pre { white-space: pre-wrap; font: 12px var(--mono); }
+svg.spark { width: 70px; height: 22px; display: block; }
+textarea { resize: vertical; width: 100%; }
+h2 + * + h2, .panel > * + h2 { margin-top: 18px; }
+.row.rapat { flex-wrap: nowrap; }
+.row.rapat input { flex: 1; min-width: 0; }
+input[type=number] { width: 80px; }
+.gulir { max-height: 320px; overflow-y: auto; }
+#wl td { padding: 5px 4px; }

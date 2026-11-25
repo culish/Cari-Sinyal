@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cari-Sinyal</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="logo">CARI<span>·</span>SINYAL</div>
+  <form id="global">
+    <input id="simbol" value="BBCA.JK" spellcheck="false" aria-label="Simbol" title="Simbol Yahoo, mis. BBCA.JK, AAPL, BTC-USD">
+    <select id="rentang" aria-label="Rentang">
+      <option value="1y">1 thn</option><option value="2y">2 thn</option>
+      <option value="5y" selected>5 thn</option><option value="10y">10 thn</option><option value="max">semua</option>
+    </select>
+    <button>Muat</button>
+  </form>
+  <div id="status" role="status"></div>
+</header>
+<nav>
+  <button data-tab="pasar" class="on">Pasar</button>
+  <button data-tab="makro">Makro</button>
+  <button data-tab="backtest">Backtest</button>
+  <button data-tab="risiko">Risiko</button>
+  <button data-tab="portofolio">Portofolio</button>
+  <button data-tab="paper">Paper Trading</button>
+  <button data-tab="agen">Agen AI</button>
+</nav>
+<main>
+
+<section id="pasar" class="on">
+  <div class="grid2">
+    <aside class="panel">
+      <h2>Watchlist</h2>
+      <form id="wl-form" class="row rapat"><input id="wl-input" placeholder="tambah simbol"><button>+</button></form>
+      <table id="wl"></table>
+    </aside>
+    <div>
+      <div id="kartu-pasar" class="kartu"></div>
+      <div class="panel"><h2>Harga, SMA 20/50, Bollinger</h2><div class="chart tinggi"><canvas id="c-harga"></canvas></div></div>
+      <div class="grid-sama">
+        <div class="panel"><h2>RSI 14</h2><div class="chart"><canvas id="c-rsi"></canvas></div></div>
+        <div class="panel"><h2>MACD 12/26/9</h2><div class="chart"><canvas id="c-macd"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="makro">
+  <div class="panel">
+    <h2>Data makro gratis</h2>
+    <div class="preset" id="preset-makro"></div>
+    <form id="makro-form" class="row">
+      <select id="makro-sumber"><option value="fred">FRED</option><option value="wb">Bank Dunia</option><option value="yahoo">Yahoo (kurs, komoditas)</option></select>
+      <input id="makro-seri" value="DGS10" placeholder="kode seri">
+      <input id="makro-negara" value="IDN" placeholder="negara" size="5" title="khusus Bank Dunia">
+      <button>Tampilkan</button>
+    </form>
+    <div class="chart tinggi"><canvas id="c-makro"></canvas></div>
+  </div>
+</section>
+
+<section id="backtest">
+  <div class="panel">
+    <form id="bt-form" class="row">
+      <label>Strategi <select id="bt-strategi">
+        <option value="sma">SMA 20/50</option><option value="momentum">Momentum 6 bln</option>
+        <option value="rsi">RSI reversion 30/70</option><option value="bollinger">Bollinger reversion</option>
+        <option value="ml">ML walk-forward</option></select></label>
+      <label>Biaya (bps) <input id="bt-biaya" type="number" value="15" min="0" size="4"></label>
+      <label class="ml-saja">Ridge <input id="bt-ridge" type="number" value="0" min="0" step="0.5" size="4"></label>
+      <button>Jalankan</button>
+    </form>
+  </div>
+  <div id="bt-stat" class="kartu"></div>
+  <div class="panel"><h2>Ekuitas: strategi vs beli-tahan</h2><div class="chart tinggi"><canvas id="c-ekuitas"></canvas></div></div>
+  <div class="grid-sama">
+    <div class="panel"><h2>Drawdown strategi</h2><div class="chart"><canvas id="c-dd"></canvas></div></div>
+    <div class="panel" id="bt-ml"><h2>Information coefficient (Spearman) vs return besok</h2><div class="chart"><canvas id="c-ic"></canvas></div><p id="bt-hit" class="redup"></p></div>
+  </div>
+  <div class="panel"><h2><span id="bt-n"></span> transaksi terakhir</h2><div class="gulir"><table id="bt-trx"></table></div></div>
+</section>
+
+<section id="risiko">
+  <div class="panel">
+    <form id="rk-form" class="row">
+      <label>Benchmark <input id="rk-bm" value="^JKSE" size="8"></label><button>Hitung</button>
+    </form>
+  </div>
+  <div id="rk-stat" class="kartu"></div>
+  <div class="grid-sama">
+    <div class="panel"><h2>Sebaran return harian</h2><div class="chart"><canvas id="c-hist"></canvas></div></div>
+    <div class="panel"><h2>Drawdown harga</h2><div class="chart"><canvas id="c-rk-dd"></canvas></div></div>
+  </div>
+</section>
+
+<section id="portofolio">
+  <div class="panel">
+    <form id="pf-form" class="row">
+      <input id="pf-simbol" value="BBCA.JK, BBRI.JK, TLKM.JK, ASII.JK, ANTM.JK" size="40">
+      <button>Optimasi</button>
+    </form>
+    <p class="redup">5.000 kombinasi bobot acak (long-only) dari data 3 tahun. Titik oranye: Sharpe maksimum, biru: varians minimum, abu: bobot sama.</p>
+  </div>
+  <div class="grid-sama">
+    <div class="panel"><h2>Frontier risiko vs return (tahunan)</h2><div class="chart tinggi"><canvas id="c-frontier"></canvas></div></div>
+    <div class="panel"><h2>Bobot</h2><table id="pf-bobot"></table><h2>Korelasi return harian</h2><table id="pf-kor" class="heat"></table></div>
+  </div>
+</section>
+
+<section id="paper">
+  <div class="grid2">
+    <aside class="panel">
+      <h2>Order</h2>
+      <form id="po-form" class="kolom">
+        <input id="po-simbol" placeholder="simbol" value="BBCA.JK">
+        <input id="po-jumlah" type="number" min="1" value="100" placeholder="jumlah lembar">
+        <div class="row"><button data-aksi="beli" class="beli">Beli</button><button data-aksi="jual" class="jual">Jual</button></div>
+      </form>
+      <p class="redup">Harga = penutupan terakhir. Uang bohongan, modal awal Rp100 juta.</p>
+    </aside>
+    <div>
+      <div id="po-kartu" class="kartu"></div>
+      <div class="panel"><h2>Posisi</h2><table id="po-posisi"></table></div>
+      <div class="panel"><h2>Riwayat</h2><table id="po-riwayat"></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="agen">
+  <div class="grid2">
+    <aside class="panel">
+      <h2>Agen</h2>
+      <div id="ag-daftar" class="kolom"></div>
+      <h2>API key Anthropic</h2>
+      <input id="ag-key" type="password" placeholder="sk-ant-... (kosong = pakai env)" autocomplete="off">
+      <p class="redup">Disimpan di browser ini saja dan hanya dikirim ke server lokal.</p>
+    </aside>
+    <div>
+      <form id="ag-form" class="panel kolom">
+        <textarea id="ag-tanya" rows="3">Bagaimana kondisi saham ini sekarang dan apa risiko terbesarnya dalam 6 bulan?</textarea>
+        <button>Tanya agen</button>
+      </form>
+      <div id="ag-hasil"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<script src="app.js"></script>
+</body>
+</html>

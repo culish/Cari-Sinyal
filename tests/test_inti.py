@@ -94,3 +94,70 @@ def test_cli_tanpa_jaringan(monkeypatch, tmp_path, capsys):
     assert "beli_tahan" in out and "sharpe" in out and "BBCA.JK" in out
     with pytest.raises(SystemExit):
         cli.main(["paper", "jual", "BBCA.JK", "101"])
+
+
+def test_indikator_dan_strategi():
+    from carisinyal import indikator
+
+    close = harga_acak()
+    r = indikator.rsi(close).dropna()
+    assert r.between(0, 100).all()
+    naik = pd.Series(np.arange(1, 60.0))
+    assert indikator.rsi(naik).iloc[-1] == pytest.approx(100)
+    for nama, fn in backtest.STRATEGI.items():
+        pos = fn(close)
+        assert set(pos.dropna().unique()) <= {0.0, 1.0}, nama
+    trx = backtest.transaksi(close, backtest.sma_cross(close))
+    assert [t["aksi"] for t in trx[:2]] == ["beli", "jual"]
+
+
+def test_risiko_dan_portofolio():
+    from carisinyal import portofolio, risiko
+
+    a, b = harga_acak(seed=1), harga_acak(seed=2)
+    r = risiko.ringkasan(a, benchmark=a)
+    assert r["beta"] == pytest.approx(1) and r["cvar_historis"] >= r["var_historis"] > 0
+    f = portofolio.frontier(pd.DataFrame({"A": a, "B": b}), n=500)
+    for pilihan in f["terbaik"].values():
+        assert sum(pilihan["bobot"].values()) == pytest.approx(1, abs=1e-3)
+    assert f["terbaik"]["varians_min"]["vol"] <= f["terbaik"]["bobot_sama"]["vol"]
+
+
+def test_server_api(monkeypatch, tmp_path):
+    import json
+    import threading
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+
+    from carisinyal import agen, server
+
+    monkeypatch.setattr(data, "harga", lambda s, r="5y": harga_acak(seed=len(s)))
+    monkeypatch.setattr(data, "fred", lambda s: pd.Series([4.0, 4.1], index=pd.date_range("2026-01-01", periods=2)))
+    monkeypatch.setattr(agen, "tanya", lambda a, p, k, key=None: f"{a}:{key}")
+    monkeypatch.setattr(server, "BUKU", str(tmp_path / "akun.json"))
+    server._cache.clear()
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{srv.server_port}"
+
+    def panggil(path, body=None):
+        req = urllib.request.Request(url + path, data=body and json.dumps(body).encode(), method="POST" if body else "GET")
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.status, json.load(r)
+        except urllib.error.HTTPError as e:
+            return e.code, json.load(e)
+
+    try:
+        for path in ["/api/pasar?simbol=X", "/api/watchlist?simbol=A,B", "/api/makro?seri=DGS10",
+                     "/api/backtest?simbol=X&strategi=rsi", "/api/backtest?simbol=X&strategi=ml",
+                     "/api/risiko?simbol=X&benchmark=Y", "/api/portofolio?simbol=A,BB,CCC", "/api/paper"]:
+            assert panggil(path)[0] == 200, path
+        kode, akun = panggil("/api/paper", {"aksi": "beli", "simbol": "x", "jumlah": 10})
+        assert kode == 200 and akun["posisi"] == {"X": 10}
+        assert panggil("/api/paper", {"aksi": "jual", "simbol": "X", "jumlah": 11})[0] == 400
+        kode, hasil = panggil("/api/agen", {"simbol": "X", "pertanyaan": "?", "agen": ["risiko", "makro"], "api_key": "k"})
+        assert [j["teks"] for j in hasil["jawaban"]] == ["risiko:k", "makro:k"] and "DGS10" in hasil["konteks"]
+        assert panggil("/../pyproject.toml")[0] == 404
+    finally:
+        srv.shutdown()

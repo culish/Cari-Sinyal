@@ -21,7 +21,7 @@ def _ringkas(close):
 
 
 def _posisi(close, strategi):
-    return ml.sinyal(close) if strategi == "ml" else backtest.sma_cross(close)
+    return ml.sinyal(close) if strategi == "ml" else backtest.STRATEGI[strategi](close)
 
 
 def cmd_harga(a):
@@ -62,14 +62,17 @@ def cmd_paper(a):
 
 
 def cmd_riset(a):
-    from . import riset
+    from . import agen, server
 
-    close = data.harga(a.simbol, a.rentang)
-    konteks = [f"Ringkasan {a.simbol}:\n{_ringkas(close).to_string()}",
-               f"Backtest SMA 20/50 vs beli-tahan:\n{backtest.bandingkan(close, backtest.sma_cross(close)).to_string()}"]
-    for seri in a.fred:
-        konteks.append(f"FRED {seri} 12 data terakhir:\n{data.fred(seri).tail(12).to_string()}")
-    print(riset.tanya(a.pertanyaan, "\n\n".join(konteks)))
+    ktx = server.konteks(a.simbol.upper())
+    for nama in a.agen:
+        print(f"## {agen.AGEN[nama][0]}\n{agen.tanya(nama, a.pertanyaan, ktx)}\n")
+
+
+def cmd_web(a):
+    from . import server
+
+    server.jalankan(a.port, not a.tanpa_browser)
 
 
 def main(argv=None):
@@ -94,7 +97,7 @@ def main(argv=None):
     for nama, fn, bantuan in [("backtest", cmd_backtest, "uji strategi vs beli-tahan"),
                               ("sinyal", cmd_sinyal, "posisi strategi hari ini")]:
         sp = baru(nama, fn, bantuan)
-        sp.add_argument("--strategi", choices=["sma", "ml"], default="sma")
+        sp.add_argument("--strategi", choices=["sma", "momentum", "rsi", "bollinger", "ml"], default="sma")
         if nama == "backtest":
             sp.add_argument("--biaya", type=float, default=15, help="biaya per transaksi, basis poin")
 
@@ -105,9 +108,15 @@ def main(argv=None):
     sp.add_argument("jumlah", nargs="?", type=int)
     sp.add_argument("--harga", type=float, help="harga manual; default harga penutupan terakhir")
 
-    sp = baru("riset", cmd_riset, "catatan riset dari Claude (butuh ANTHROPIC_API_KEY)")
+    sp = baru("riset", cmd_riset, "catatan riset dari agen Claude (butuh ANTHROPIC_API_KEY)")
     sp.add_argument("pertanyaan")
-    sp.add_argument("--fred", nargs="*", default=[], help="seri FRED tambahan untuk konteks")
+    sp.add_argument("--agen", nargs="+", default=["kuant"],
+                    choices=["teknikal", "fundamental", "makro", "risiko", "kuant", "skeptis"])
+
+    sp = sub.add_parser("web", help="buka UI web lokal")
+    sp.set_defaults(fn=cmd_web)
+    sp.add_argument("--port", type=int, default=8765)
+    sp.add_argument("--tanpa-browser", action="store_true")
 
     a = p.parse_args(argv)
     if a.cmd == "paper" and a.aksi != "posisi" and not (a.simbol and a.jumlah and a.jumlah > 0):
