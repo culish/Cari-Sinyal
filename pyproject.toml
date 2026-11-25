@@ -1,0 +1,16 @@
+[project]
+name = "cari-sinyal"
+version = "0.1.0"
+description = "Riset trading dari terminal: data gratis, backtest, sinyal ML, paper trading, catatan riset AI."
+requires-python = ">=3.10"
+dependencies = ["pandas>=2.0", "numpy>=1.24", "requests>=2.28"]
+
+[project.optional-dependencies]
+riset = ["anthropic>=2.14"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+cari-sinyal = "carisinyal.cli:main"
+
+[tool.setuptools]
+packages = ["carisinyal"]
